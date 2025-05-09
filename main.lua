@@ -243,6 +243,70 @@ SMODS.Joker{
 }
 
 SMODS.Joker{
+	key = 'counterfeit',
+	loc_txt = {
+		name = "Counterfeit",
+		text = {
+			'Played cards give {C:chips}+#1#{} Chips',
+			'and {C:mult}+#2#{} Mult when scored',
+			'{C:green}#3# in #4#{} chance to {C:red,E:2}self',
+			'{C:red,E:2}destruct{} after hand scores'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 3, y = 0},
+	rarity = 2,
+	cost = 1,
+	blueprint_compat = true,
+	eternal_compat = false,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			chip_bonus = 10,
+			mult_bonus = 1,
+			destroy_odds = 6
+		}
+	},
+	loc_vars = function(self, info_queue, center)
+		return {vars = {center.ability.extra.chip_bonus, center.ability.extra.mult_bonus, G.GAME.probabilities.normal, center.ability.extra.destroy_odds}}
+	end,
+	calculate = function(self, card, context)
+		if context.individual and context.cardarea == G.play then
+			return {
+				card = card,
+				chips = card.ability.extra.chip_bonus,
+				mult = card.ability.extra.mult_bonus
+			}
+		end
+		
+		if context.final_scoring_step and not context.blueprint then
+			if pseudorandom('counterfeit_destroy') < G.GAME.probabilities.normal / card.ability.extra.destroy_odds then
+				G.E_MANAGER:add_event(Event({
+				func = function()
+					play_sound('tarot1')
+					G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.3, blockable = false,
+					func = function()
+						G.jokers:remove_card(card)
+						card:remove()
+						card = nil
+						return true; end}))
+					return true
+				end}))
+				card.gone = true
+				return {
+					message = 'Destroyed!'
+				}
+			end
+			return {
+				message = 'Safe!'
+			}
+		end
+	end
+}
+
+SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
 	loc_txt = {                              
 		name = 'Example Joker',                -- name of the Joker in game
