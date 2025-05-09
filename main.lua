@@ -95,7 +95,7 @@ SMODS.Joker{
 	end,
 	calculate = function(self,card,context)
 		-- determine next blind's rank at blind start
-		if context.setting_blind then
+		if context.setting_blind and not context.blueprint then
 			if global.timestable_reset ~= true then
 				global.timestable_rank = math.random(2, 10)
 				global.timestable_reset = true
@@ -125,7 +125,7 @@ SMODS.Joker{
 		end
 		
 		-- at end of round, change the expected rank
-		if context.end_of_round then
+		if context.end_of_round and not context.blueprint then
 			card.ability.extra.desired_rank = global.timestable_rank
 			global.timestable_reset = false
 		end
@@ -165,7 +165,7 @@ SMODS.Joker{
 		return {vars = {center.ability.extra.mult_per_hand, center.ability.extra.reset_after, center.ability.extra.hand_counter, center.ability.extra.mult_bonus}}
 	end,
 	calculate = function(self, card, context)
-		if context.before then
+		if context.before and not context.blueprint then
 			card.ability.extra.mult_bonus = card.ability.extra.mult_bonus + card.ability.extra.mult_per_hand
 			card.ability.extra.hand_counter = card.ability.extra.hand_counter - 1
 			return {
@@ -182,7 +182,7 @@ SMODS.Joker{
 			}
 		end
 		
-		if context.final_scoring_step then
+		if context.final_scoring_step and not context.blueprint then
 			if card.ability.extra.hand_counter == 0 then
 				card.ability.extra.mult_bonus = 0
 				card.ability.extra.hand_counter = card.ability.extra.reset_after
@@ -226,7 +226,7 @@ SMODS.Joker{
 		return {vars = {center.ability.extra.payout, center.ability.extra.counter, center.ability.extra.reset_to}}
 	end,
 	calculate = function(self, card, context)
-		if context.before or context.pre_discard then
+		if (context.before or context.pre_discard) and not context.blueprint then
 			card.ability.extra.counter = card.ability.extra.counter - 1
 			if card.ability.extra.counter == 0 then
 				card.ability.extra.counter = card.ability.extra.reset_to
