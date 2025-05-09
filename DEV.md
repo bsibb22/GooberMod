@@ -2,10 +2,8 @@
 Below is a list of guidelines, template code, etc. for creating custom Jokers.
 
 # Environment
-To begin development, you will need to have Steamodded and Lovely installed:
-	https://github.com/Steamodded/smods/wiki
-I also recommend installing the DebugPlus mod for easier testing:
-	https://github.com/WilsontheWolf/DebugPlus
+To begin development, you will need to have Steamodded and Lovely installed: https://github.com/Steamodded/smods/wiki
+I also recommend installing the DebugPlus mod for easier testing: https://github.com/WilsontheWolf/DebugPlus
 
 Then, place this entire repository into your Balatro\Mods folder and restart the game.
 
