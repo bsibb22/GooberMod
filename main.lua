@@ -10,7 +10,10 @@
 -- values that should be consistent throughout the whole game
 global = {
 	timestable_rank = math.random(2, 10),
-	timestable_reset = false
+	timestable_reset = false,
+	foods = {
+		"j_egg", "j_ice_cream", "j_gros_michel", "j_cavendish", "j_turtle_bean", "j_diet_cola", "j_popcorn", "j_ramen", "j_selzer"
+	}
 }
 
 -- UTILITY FUNCTIONS --
@@ -242,6 +245,7 @@ SMODS.Joker{
 	end
 }
 
+-- Counterfeit
 SMODS.Joker{
 	key = 'counterfeit',
 	loc_txt = {
@@ -306,6 +310,69 @@ SMODS.Joker{
 	end
 }
 
+-- Vending Machine
+SMODS.Joker{
+	key = 'vending_machine',
+	loc_txt = {
+		name = 'Vending Machine',
+		text = {
+			'Every {C:attention}3{} rounds ({C:attention}#1#{}/3),',
+			'create {C:attention}2{} random {C:attention}Food{}',
+			'{C:attention}Jokers{}',
+			'{C:inactive}(Must have room)'
+		}
+	},
+	atlas = "GooberAtlas",
+	pos = {x = 4, y = 0},
+	rarity = 3,
+	cost = 9,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			round_counter = 3,
+			incremented = false
+		}
+	},
+	loc_vars = function(self, info_queue, center)
+		return {vars = {center.ability.extra.round_counter}}
+	end,
+	-- code mostly ripped from Riff-Raff
+	calculate = function(self, card, context)
+		if context.setting_blind then
+			card.ability.extra.incremented = false
+			if card.ability.extra.round_counter >= 3 and #G.jokers.cards + G.GAME.joker_buffer < G.jokers.config.card_limit then
+				local num_foods = math.min(2, G.jokers.config.card_limit - (#G.jokers.cards + G.GAME.joker_buffer))
+				G.GAME.joker_buffer = G.GAME.joker_buffer + num_foods
+				G.E_MANAGER:add_event(Event({
+                    func = function() 
+                        for i = 1, num_foods do
+                            local card = create_card('Joker', G.jokers, nil, nil, nil, nil, pseudorandom_element(global.foods, pseudoseed("vending_machine")))
+                            card:add_to_deck()
+                            G.jokers:emplace(card)
+                            card:start_materialize()
+                            G.GAME.joker_buffer = 0
+                        end
+                        return true
+                    end}))
+				card.ability.extra.round_counter = 0
+				return {
+					message = "Dispensed!"
+				}
+			end
+		end
+			
+		if context.end_of_round and not context.blueprint and not card.ability.extra.incremented then
+			card.ability.extra.round_counter = card.ability.extra.round_counter + 1
+			card.ability.extra.incremented = true
+		end
+	end
+}
+
+-- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
 	loc_txt = {                              
