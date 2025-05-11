@@ -9,7 +9,7 @@
 
 -- values that should be consistent throughout the whole game
 global = {
-	timestable_rank = math.random(1, 10),
+	timestable_rank = 14,
 	timestable_reset = false,
 	wordsearch_ranks = {3, 4, 5},
 	wordsearch_reset = false,
@@ -19,7 +19,62 @@ global = {
 }
 
 -- UTILITY FUNCTIONS --
+function id_to_rank(base_id)
+	if base_id >= 2 and base_id <= 10 then
+		return base_id
+	elseif base_id == 11 then
+		return 'Jack'
+	elseif base_id == 12 then
+		return 'Queen'
+	elseif base_id == 13 then
+		return 'King'
+	elseif base_id == 14 then
+		return 'Ace'
+	else
+		return 0
+	end
+end
 
+-- pulls the rank of _n unique, random cards from your overall deck and returns them in a table
+function get_rank(rank_pool, _n)
+	_n = _n or 1
+	rank_pool = rank_pool or {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}
+	local resulting_ranks = {}
+	local valid_cards = {}
+	
+	-- initialize return table to return all Aces
+	for i = 1, _n do
+		resulting_ranks[#resulting_ranks + 1] = 14
+	end
+	
+	for k, v in ipairs(G.playing_cards) do
+		for i = 1, #rank_pool do
+			if v.ability.effect ~= 'Stone Card' and v.base.id == rank_pool[i] then
+				valid_cards[#valid_cards + 1] = v
+				break
+			end
+		end
+	end
+	
+	-- was a valid card found?
+	if valid_cards[_n] then
+		local valids_copy = {}
+		for k,v in ipairs(valid_cards) do
+			valids_copy[k] = v
+		end
+		for i = 1, _n do
+			local chosen = pseudorandom_element(valids_copy, pseudoseed('selecting_rank'..G.GAME.round_resets.ante))
+			for a,b in ipairs(valids_copy) do
+				if valids_copy[a] == v then
+					valids_copy[a] = nil
+					break
+				end
+			end
+			resulting_ranks[i] = chosen.base.id
+		end
+	end
+	return resulting_ranks
+end
 
 -- sprite stuff
 SMODS.Atlas{
@@ -75,7 +130,7 @@ SMODS.Joker{
 		name = 'Times Table',
 		text = {
 			'Gain {X:mult,C:white}X#1#{} Mult if scoring',
-			'hand only contains {C:attention}#2#{}s',
+			'hand only contains {C:attention}#3#{}s',
 			'{C:inactive}(rank changes every round,',
 			'{C:inactive}excludes face cards){}'
 		}
@@ -92,19 +147,17 @@ SMODS.Joker{
 	config = {
 		extra = {
 			Xmult = 4,
-			desired_rank = global.timestable_rank
+			desired_rank = global.timestable_rank,
+			rank_text = id_to_rank(global.timestable_rank)
 		}
 	},
 	loc_vars = function(self, info_queue, center)
-		return {vars = {center.ability.extra.Xmult, center.ability.extra.desired_rank}}
+		return {vars = {center.ability.extra.Xmult, center.ability.extra.desired_rank, center.ability.extra.rank_text}}
 	end,
 	calculate = function(self,card,context)
 		-- determine next blind's rank at blind start
 		if context.setting_blind and not context.blueprint then
-			if global.timestable_reset ~= true then
-				global.timestable_rank = math.random(1, 10)
-				global.timestable_reset = true
-			end
+			global.timestable_reset = false
 		end
 		
 		-- this scoring effect occurs during the regular scoring sequence
@@ -131,8 +184,12 @@ SMODS.Joker{
 		
 		-- at end of round, change the expected rank
 		if context.end_of_round and not context.blueprint then
-			card.ability.extra.desired_rank = global.timestable_rank
-			global.timestable_reset = false
+			if not global.timestable_reset then
+				global.timestable_rank = get_rank({2, 3, 4, 5, 6, 7, 8, 9, 10, 14})[1]
+				card.ability.extra.desired_rank = global.timestable_rank
+				card.ability.extra.rank_text = id_to_rank(global.timestable_rank)
+				global.timestable_reset = true
+			end
 		end
 	end
 }
@@ -381,8 +438,8 @@ SMODS.Joker{
 		name = "Word Search",
 		text = {
 			'If ranks of played hand',
-			'contain the sequence {C:attention}#1#{}, {C:attention}#2#{}, {C:attention}#3#{},',
-			'earn {C:attention}$#4#{}',
+			'contain the sequence',
+			'{C:attention}#5#{}, {C:attention}#6#{}, {C:attention}#7#{}, earn {C:attention}$#4#{}',
 			'{C:inactive,s:0.8}(Ranks change every round)'
 		}
 	},
@@ -400,28 +457,26 @@ SMODS.Joker{
 			rank1 = global.wordsearch_ranks[1],
 			rank2 = global.wordsearch_ranks[2],
 			rank3 = global.wordsearch_ranks[3],
-			payout = 7
+			payout = 7,
+			rank_text1 = id_to_rank(global.wordsearch_ranks[1]),
+			rank_text2 = id_to_rank(global.wordsearch_ranks[2]),
+			rank_text3 = id_to_rank(global.wordsearch_ranks[3])
 		}
 	},
 	loc_vars = function(self, info_queue, center)
-		return {vars = {center.ability.extra.rank1, center.ability.extra.rank2, center.ability.extra.rank3, center.ability.extra.payout}}
+		return {vars = {center.ability.extra.rank1, center.ability.extra.rank2, center.ability.extra.rank3, center.ability.extra.payout, center.ability.extra.rank_text1, center.ability.extra.rank_text2, center.ability.extra.rank_text3}}
 	end,
 	calculate = function(self, card, context)
 		-- reset ranks
 		if context.setting_blind and not context.blueprint then
-			if global.wordsearch_reset ~= true then
-				global.wordsearch_ranks[1] = math.random(1, 13)
-				global.wordsearch_ranks[2] = math.random(1, 13)
-				global.wordsearch_ranks[3] = math.random(1, 13)
-				global.wordsearch_reset = true
-			end
+			global.wordsearch_reset = false
 		end
 	
 		if context.before then
-			--if #context.full_hand < 3 then
-			--	return true
-			--end
-			for i = 1, #context.full_hand - 3 do
+			if #context.full_hand < 3 then
+				return true
+			end
+			for i = 1, #context.full_hand - 2 do
 				if context.full_hand[i].base.id == card.ability.extra.rank1 then
 					if context.full_hand[i + 1].base.id == card.ability.extra.rank2 then
 						if context.full_hand[i + 2].base.id == card.ability.extra.rank3 then
@@ -436,10 +491,16 @@ SMODS.Joker{
 		end
 		
 		if context.end_of_round and not context.blueprint then
-			card.ability.extra.rank1 = global.wordsearch_ranks[1]
-			card.ability.extra.rank2 = global.wordsearch_ranks[2]
-			card.ability.extra.rank3 = global.wordsearch_ranks[3]
-			global.wordsearch_reset = false
+			if not global.wordsearch_reset then
+				global.wordsearch_ranks = get_rank({2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}, 3)
+				card.ability.extra.rank1 = global.wordsearch_ranks[1]
+				card.ability.extra.rank2 = global.wordsearch_ranks[2]
+				card.ability.extra.rank3 = global.wordsearch_ranks[3]
+				card.ability.extra.rank_text1 = id_to_rank(global.wordsearch_ranks[1])
+				card.ability.extra.rank_text2 = id_to_rank(global.wordsearch_ranks[2])
+				card.ability.extra.rank_text3 = id_to_rank(global.wordsearch_ranks[3])
+				global.wordsearch_reset = true
+			end
 		end
 	end
 }
