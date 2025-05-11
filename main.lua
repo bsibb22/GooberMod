@@ -9,8 +9,10 @@
 
 -- values that should be consistent throughout the whole game
 global = {
-	timestable_rank = math.random(2, 10),
+	timestable_rank = math.random(1, 10),
 	timestable_reset = false,
+	wordsearch_ranks = {3, 4, 5},
+	wordsearch_reset = false,
 	foods = {
 		"j_egg", "j_ice_cream", "j_gros_michel", "j_cavendish", "j_turtle_bean", "j_diet_cola", "j_popcorn", "j_ramen", "j_selzer"
 	}
@@ -100,7 +102,7 @@ SMODS.Joker{
 		-- determine next blind's rank at blind start
 		if context.setting_blind and not context.blueprint then
 			if global.timestable_reset ~= true then
-				global.timestable_rank = math.random(2, 10)
+				global.timestable_rank = math.random(1, 10)
 				global.timestable_reset = true
 			end
 		end
@@ -368,6 +370,76 @@ SMODS.Joker{
 		if context.end_of_round and not context.blueprint and not card.ability.extra.incremented then
 			card.ability.extra.round_counter = card.ability.extra.round_counter + 1
 			card.ability.extra.incremented = true
+		end
+	end
+}
+
+-- Word Search
+SMODS.Joker{
+	key = 'word_search',
+	loc_txt = {
+		name = "Word Search",
+		text = {
+			'If ranks of played hand',
+			'contain the sequence {C:attention}#1#{}, {C:attention}#2#{}, {C:attention}#3#{},',
+			'earn {C:attention}$#4#{}',
+			'{C:inactive,s:0.8}(Ranks change every round)'
+		}
+	},
+	atlas = "GooberAtlas",
+	pos = {x = 5, y = 0},
+	rarity = 1,
+	cost = 6,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			rank1 = global.wordsearch_ranks[1],
+			rank2 = global.wordsearch_ranks[2],
+			rank3 = global.wordsearch_ranks[3],
+			payout = 7
+		}
+	},
+	loc_vars = function(self, info_queue, center)
+		return {vars = {center.ability.extra.rank1, center.ability.extra.rank2, center.ability.extra.rank3, center.ability.extra.payout}}
+	end,
+	calculate = function(self, card, context)
+		-- reset ranks
+		if context.setting_blind and not context.blueprint then
+			if global.wordsearch_reset ~= true then
+				global.wordsearch_ranks[1] = math.random(1, 13)
+				global.wordsearch_ranks[2] = math.random(1, 13)
+				global.wordsearch_ranks[3] = math.random(1, 13)
+				global.wordsearch_reset = true
+			end
+		end
+	
+		if context.before then
+			--if #context.full_hand < 3 then
+			--	return true
+			--end
+			for i = 1, #context.full_hand - 3 do
+				if context.full_hand[i].base.id == card.ability.extra.rank1 then
+					if context.full_hand[i + 1].base.id == card.ability.extra.rank2 then
+						if context.full_hand[i + 2].base.id == card.ability.extra.rank3 then
+							return {
+								card = card,
+								dollars = card.ability.extra.payout
+							}
+						end
+					end
+				end
+			end
+		end
+		
+		if context.end_of_round and not context.blueprint then
+			card.ability.extra.rank1 = global.wordsearch_ranks[1]
+			card.ability.extra.rank2 = global.wordsearch_ranks[2]
+			card.ability.extra.rank3 = global.wordsearch_ranks[3]
+			global.wordsearch_reset = false
 		end
 	end
 }
