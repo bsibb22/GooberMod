@@ -312,7 +312,7 @@ SMODS.Joker{
 		text = {
 			'Played cards give {C:chips}+#1#{} Chips',
 			'and {C:mult}+#2#{} Mult when scored',
-			'{C:green}#3# in #4#{} chance to {C:red,E:2}self',
+			'{C:green,E:2}#3# in #4#{} chance to {C:red,E:2}self',
 			'{C:red,E:2}destruct{} after hand scores'
 		}
 	},
@@ -500,6 +500,45 @@ SMODS.Joker{
 				card.ability.extra.rank_text2 = id_to_rank(global.wordsearch_ranks[2])
 				card.ability.extra.rank_text3 = id_to_rank(global.wordsearch_ranks[3])
 				global.wordsearch_reset = true
+			end
+		end
+	end
+}
+
+-- Slot Machine
+SMODS.Joker{
+	key = "slot_machine",
+	loc_txt = {
+		name = "Slot Machine",
+		text = {
+			"Retrigger all played",
+			"{C:attention}Lucky Cards{}"
+		}
+	},
+	atlas = "GooberAtlas",
+	pos = {x = 6, y = 0},
+	rarity = 2,
+	cost = 6,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			retriggers = 1,
+		}
+	},
+	loc_vars = function(self, info_queue, center)
+		return {vars = {center.ability.extra.retriggers}}
+	end,
+	calculate = function(self, card, context)
+		if context.repetition and context.cardarea == G.play then
+			if context.other_card.ability.effect == "Lucky Card" then
+				return {
+					message = "Again!",
+					repetitions = card.ability.extra.retriggers
+				}
 			end
 		end
 	end
