@@ -635,6 +635,23 @@ SMODS.Joker{
 			return true end }))
 		end
 		
+		if context.using_consumeable and card.ability.extra.side == 1 then
+			card.ability.extra.xmult = card.ability.extra.xmult + card.ability.extra.xmult_mod
+			play_sound('card1')
+			return {
+				message = 'Upgrade!'
+			}
+		end
+		
+		if context.joker_main and card.ability.extra.side == 1 then
+			return {
+				card = card,
+				Xmult_mod = card.ability.extra.xmult,
+				message = 'X' .. card.ability.extra.xmult .. ' Mult',
+				colour = G.C.MULT
+			}
+		end
+		
 		if context.end_of_round and G.GAME.blind:get_type() == 'Boss' and card.ability.extra.flipped then
 			play_sound('card1')
 			card:flip()
