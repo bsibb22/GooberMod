@@ -541,6 +541,42 @@ SMODS.Joker{
 	end
 }
 
+--- Jokette
+SMODS.Joker{
+	key = 'jokette',
+	loc_txt = {
+		name = 'Jokette',
+		text = {
+			'{C:chips} +#1#{} Chips'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, --- Just a placeholder
+	rarity = 1,
+	cost = 2,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			bonus_chips = 30
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = {center.ability.extra.bonus_chips}}	
+	end,
+	calculate = function(self, card, context)
+		if context.joker_main then
+			return {
+				card = card,
+				chips = card.ability.extra.bonus_chips
+			}
+		end
+	end
+}
+
 -- Cursed Joker
 SMODS.Joker{
 	key = "joker_cursed",
