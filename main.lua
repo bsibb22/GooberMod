@@ -1,12 +1,3 @@
---- STEAMODDED HEADER
---- MOD_NAME: GOOBER_MOD
---- MOD_ID: GOOBTEST
---- MOD_AUTHOR: [the_goobers]
---- MOD_DESCRIPTION: The Goober Mod, for Goobers, by Goobers.
---- PREFIX: xmpl
------------------------------------------------------
---------------------- MOD CODE ----------------------
-
 -- values that should be consistent throughout the whole game
 global = {
 	timestable_rank = 14,
@@ -82,6 +73,12 @@ SMODS.Atlas{
 	path = 'goober_sprites.png',
 	px = 71,
 	py = 95
+}
+
+-- audio stuff
+SMODS.Sound{
+	key = 'curse_reveal',
+	path = 'curse_reveal.ogg'
 }
 
 -- JOKER TEMPLATE --
@@ -576,6 +573,96 @@ SMODS.Joker{
 				card = card,
 				chips = card.ability.extra.bonus_chips
 			}
+		end
+	end
+}
+
+-- Cursed Joker
+SMODS.Joker{
+	key = "joker_cursed",
+	loc_txt = {
+		name = "Cursed Joker",
+		text = {}
+	},
+	atlas = "GooberAtlas",
+	pos = {x = 0, y = 1},
+	rarity = 3,
+	cost = 8,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			h_reduction = 2,
+			xmult = 1,
+			xmult_mod = 0.5,
+			side = 0,
+			flipped = false
+		}
+	},
+	loc_vars = function(self, info_queue, center)
+		local vars = {center.ability.extra.h_reduction, center.ability.extra.xmult_mod, center.ability.extra.xmult}
+		local side_nodes = {}
+		localize{type = 'descriptions', set = 'Joker', key = 'j_goob_joker_cursed_'..(center.ability.extra.side), nodes = side_nodes, vars = vars, scale = 1.0}
+		
+		local main_end = {
+			{n = G.UIT.R, config = {align = "cm"}, nodes = side_nodes[1]},
+			{n = G.UIT.R, config = {align = "cm"}, nodes = side_nodes[2]},
+			{n = G.UIT.R, config = {align = "cm"}, nodes = side_nodes[3]},
+			{n = G.UIT.R, config = {align = "cm"}, nodes = side_nodes[4]},
+		}
+		return {vars = {center.ability.extra.h_reduction, center.ability.extra.xmult_mod, center.ability.extra.xmult}, main_end = main_end}
+	end,
+	add_to_deck = function(self, card, from_debuff)
+		G.hand:change_size(-card.ability.extra.h_reduction)
+	end,
+	calculate = function(self, card, context)
+		if context.setting_blind and G.GAME.blind:get_type() == 'Boss' then
+			play_sound('card1')
+			card:flip()
+			card.ability.extra.flipped = true
+			G.E_MANAGER:add_event(Event({ trigger = 'after', delay = 0.4, func = function()
+				card.children.center:set_sprite_pos({x = 1, y = 1})
+				card.ability.extra.side = 1
+				play_sound('card3')
+				G.hand:change_size(card.ability.extra.h_reduction)
+				card:flip()
+			return true end }))
+			G.E_MANAGER:add_event(Event({ trigger = 'after', delay = 0.2, func = function()
+				play_sound('goob_curse_reveal')
+			return true end }))
+		end
+		
+		if context.using_consumeable and card.ability.extra.side == 1 then
+			card.ability.extra.xmult = card.ability.extra.xmult + card.ability.extra.xmult_mod
+			play_sound('card1')
+			return {
+				message = 'Upgrade!'
+			}
+		end
+		
+		if context.joker_main and card.ability.extra.side == 1 then
+			return {
+				card = card,
+				Xmult_mod = card.ability.extra.xmult,
+				message = 'X' .. card.ability.extra.xmult .. ' Mult',
+				colour = G.C.MULT
+			}
+		end
+		
+		if context.end_of_round and G.GAME.blind:get_type() == 'Boss' and card.ability.extra.flipped then
+			play_sound('card1')
+			card:flip()
+			card.ability.extra.flipped = false
+			G.E_MANAGER:add_event(Event({ trigger = 'after', delay = 0.4, func = function()
+				card.children.center:set_sprite_pos({x = 0, y = 1})
+				card.ability.extra.side = 0
+				play_sound('card3')
+				G.hand:change_size(-card.ability.extra.h_reduction)
+				card:flip()
+			return true end }))
 		end
 	end
 }

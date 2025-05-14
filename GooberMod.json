@@ -1,0 +1,14 @@
+{
+	"id": "goober",
+	"name": "Goober Mod",
+	"display_name": "The Goober Mod",
+	"author": ["The Goobers"],
+	"description": "Adds new Jokers and a variety of other goobalicious features to the exquisite game of Balatro.",
+	"prefix": "goob",
+	"main_file": "main.lua",
+	"priority": 0,
+	"badge_colour": "f5ce42",
+	"badge_text_colour": "FFFFFF",
+	"version": "1.0.0",
+	"dependencies": [],
+}
