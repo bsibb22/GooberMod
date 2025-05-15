@@ -4,7 +4,7 @@ return {
 			j_goob_joker_cursed_0 = {
 				name = "Cursed Joker",
 				text = {
-					'-{C:attention}#1#{} hand size'
+					'{C:attention}-#1#{} hand size'
 				}
 			},
 			j_goob_joker_cursed_1 = {

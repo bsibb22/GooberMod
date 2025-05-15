@@ -577,6 +577,46 @@ SMODS.Joker{
 	end
 }
 
+-- Manila Folder
+SMODS.Joker{
+	key = "joker_folder",
+	loc_txt = {
+		name = "Manila Folder",
+		text = {
+			"Draw {C:attention}#1#{} additional",
+			"cards when first",
+			"hand drawn"
+		}
+	},
+	atlas = "GooberAtlas",
+	pos = {x = 2, y = 1},
+	rarity = 1,
+	cost = 3,
+	blueprint_compat = false,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			h_increase = 2
+		}
+	},
+	loc_vars = function(self, info_queue, center)
+		return {vars = {center.ability.extra.h_increase}}
+	end,
+	calculate = function(self, card, context)
+		if context.first_hand_drawn and not context.blueprint then
+			for i = 1, card.ability.extra.h_increase do
+				draw_card(G.deck, G.hand, 1, 'up', false, nil, nil, false)
+			end
+			return {
+				message = "Draw "..card.ability.extra.h_increase.."!",
+			}
+		end
+	end
+}
+
 -- Cursed Joker
 SMODS.Joker{
 	key = "joker_cursed",
@@ -592,7 +632,7 @@ SMODS.Joker{
 	eternal_compat = true,
 	perishable_compat = true,
 	unlocked = true,
-	discovered = true,
+	discovered = false,
 	config = {
 		extra = {
 			h_reduction = 2,
@@ -623,14 +663,14 @@ SMODS.Joker{
 			play_sound('card1')
 			card:flip()
 			card.ability.extra.flipped = true
+			delay(0.4)
 			G.E_MANAGER:add_event(Event({ trigger = 'after', delay = 0.4, func = function()
 				card.children.center:set_sprite_pos({x = 1, y = 1})
 				card.ability.extra.side = 1
 				play_sound('card3')
 				G.hand:change_size(card.ability.extra.h_reduction)
 				card:flip()
-			return true end }))
-			G.E_MANAGER:add_event(Event({ trigger = 'after', delay = 0.2, func = function()
+				delay(0.4)
 				play_sound('goob_curse_reveal')
 			return true end }))
 		end
@@ -656,6 +696,7 @@ SMODS.Joker{
 			play_sound('card1')
 			card:flip()
 			card.ability.extra.flipped = false
+			delay(0.4)
 			G.E_MANAGER:add_event(Event({ trigger = 'after', delay = 0.4, func = function()
 				card.children.center:set_sprite_pos({x = 0, y = 1})
 				card.ability.extra.side = 0
@@ -663,6 +704,10 @@ SMODS.Joker{
 				G.hand:change_size(-card.ability.extra.h_reduction)
 				card:flip()
 			return true end }))
+		end
+		
+		if context.selling_self and card.ability.extra.side == 0 and not context.blueprint then
+			G.hand:change_size(card.ability.extra.h_reduction)
 		end
 	end
 }
