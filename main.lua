@@ -81,6 +81,11 @@ SMODS.Sound{
 	path = 'curse_reveal.ogg'
 }
 
+SMODS.Sound{
+	key = 'stamp',
+	path = 'trad_stamp.ogg'
+}
+
 -- JOKER TEMPLATE --
 --[[
 
@@ -786,8 +791,8 @@ SMODS.Joker{
 		name = 'Stampbook',
 		text = {
 			'If {C:attention}first hand{} of round',
-			'has only {C:attention} 1{} card, add',
-			'a random seal to it'
+			'has only {C:attention}1{} card, add',
+			'a random {C:attention}seal{} to it'
 		}
 	},
 	atlas = 'GooberAtlas', -- Placeholder art
@@ -807,7 +812,22 @@ SMODS.Joker{
 		end
 
 		if context.before and not context.blueprint and G.GAME.current_round.hands_played == 0 and #context.full_hand == 1 then
-			context.scoring_hand[1]:set_seal(SMODS.poll_seal({ guaranteed = true, type_key = 'gungaga' }))
+			local played_card = context.scoring_hand[1]
+			return {
+				message = 'Stamp!',
+				message_card = played_card,
+				colour = G.C.EDITION,
+				func = function()
+					G.E_MANAGER:add_event(Event({
+						func = function ()
+							play_sound('goob_stamp', 1, 1.5)
+							played_card:set_seal(SMODS.poll_seal({ guaranteed = true, type_key = 'gungaga' }))
+							played_card:juice_up(0.3, 0.4)
+							return true
+						end
+					}))
+				end
+			}
 		end
 	end
 }
