@@ -861,6 +861,54 @@ SMODS.Joker{
 	end
 }
 
+-- Pythagoras
+SMODS.Joker{
+	key = 'pythagoras',
+	loc_txt = {
+		name = 'Pythagoras',
+		text = {
+			'{X:mult,C:white} X #1# {} Mult if {C:attention}played hand{}',
+			'contains a scoring {C:attention}3{}, {C:attention}4{}, and {C:attention}5'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 2,
+	cost = 6,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			Xmult = 3
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = { center.ability.extra.Xmult }}
+	end,
+	calculate = function (self, card, context)
+		if context.joker_main then
+			local has_3, has_4, has_5
+			for _, c in pairs(context.scoring_hand) do
+				if c:get_id() == 3 then
+					has_3 = true
+				elseif c:get_id() == 4 then
+					has_4 = true
+				elseif c:get_id() == 5 then
+					has_5 = true
+				end
+			end
+			if has_3 and has_4 and has_5 then
+				return {
+					xmult = card.ability.extra.Xmult
+				}
+			end
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
