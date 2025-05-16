@@ -740,7 +740,7 @@ SMODS.Joker{
 	discovered = true,
 	config = {
 		extra = {
-			odds = 5,
+			odds = 4,
 			Xmult = 1.5
 		}
 	},
@@ -748,7 +748,7 @@ SMODS.Joker{
 		return {vars = {G.GAME.probabilities.normal or 1, center.ability.extra.odds, center.ability.extra.Xmult}}
 	end,
 	add_to_deck = function(self, card, from_debuff)
-		G.GAME.modifiers.flipped_cards = 5
+		G.GAME.modifiers.flipped_cards = 4
 	end,
 	remove_from_deck = function (self, card, from_debuff)
 		G.GAME.modifiers.flipped_cards = nil
@@ -765,21 +765,14 @@ SMODS.Joker{
 			end
 		end
 
-		if context.before and not context.blueprint then
-			for _, c in pairs(context.scoring_hand) do
-				if c.id ~= nil then
-					if global.flipped_cards[c.id] then
-						global.engineer_ret_mult = global.engineer_ret_mult * card.ability.extra.Xmult
-						global.flipped_cards[c.id] = nil
-					end
+		if context.individual and context.cardarea == G.play then
+			if context.other_card.id ~= nil then
+				if global.flipped_cards[context.other_card.id] then
+					return {
+						xmult = card.ability.extra.Xmult
+					}
 				end
 			end
-		end
-
-		if context.joker_main then
-			return {
-				xmult = global.engineer_ret_mult
-			}
 		end
 	end
 }
