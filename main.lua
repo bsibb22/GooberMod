@@ -584,7 +584,7 @@ SMODS.Joker{
 		name = "Manila Folder",
 		text = {
 			"Draw {C:attention}#1#{} additional",
-			"cards when first",
+			"cards when {C:attention}first{}",
 			"hand drawn"
 		}
 	},
