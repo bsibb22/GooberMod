@@ -779,6 +779,39 @@ SMODS.Joker{
 	end
 }
 
+-- Stampbook
+SMODS.Joker{
+	key = 'stampbook',
+	loc_txt = {
+		name = 'Stampbook',
+		text = {
+			'If {C:attention}first hand{} of round',
+			'has only {C:attention} 1{} card, add',
+			'a random seal to it'
+		}
+	},
+	atlas = 'GooberAtlas', -- Placeholder art
+	pos = {x = 1, y = 0},
+	rarity = 3,
+	cost = 7,
+	blueprint_compat = false,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {},
+	loc_vars = function (self, info_queue, center) return {vars = {}} end,
+	calculate = function(self, card, context)
+		if context.first_hand_drawn and not context.blueprint then
+			local eval = function() return G.GAME.current_round.hands_played == 0 and not G.RESET_JIGGLES end
+			juice_card_until(card, eval, true)
+		end
+
+		if context.before and not context.blueprint and G.GAME.current_round.hands_played == 0 and #context.full_hand == 1 then
+			context.scoring_hand[1]:set_seal(SMODS.poll_seal({ guaranteed = true, type_key = 'gungaga' }))
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
