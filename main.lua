@@ -81,6 +81,11 @@ SMODS.Sound{
 	path = 'curse_reveal.ogg'
 }
 
+SMODS.Sound{
+	key = 'stamp',
+	path = 'trad_stamp.ogg'
+}
+
 -- JOKER TEMPLATE --
 --[[
 
@@ -735,7 +740,7 @@ SMODS.Joker{
 	discovered = true,
 	config = {
 		extra = {
-			odds = 5,
+			odds = 4,
 			Xmult = 1.5
 		}
 	},
@@ -743,7 +748,7 @@ SMODS.Joker{
 		return {vars = {G.GAME.probabilities.normal or 1, center.ability.extra.odds, center.ability.extra.Xmult}}
 	end,
 	add_to_deck = function(self, card, from_debuff)
-		G.GAME.modifiers.flipped_cards = 5
+		G.GAME.modifiers.flipped_cards = 4
 	end,
 	remove_from_deck = function (self, card, from_debuff)
 		G.GAME.modifiers.flipped_cards = nil
@@ -760,20 +765,61 @@ SMODS.Joker{
 			end
 		end
 
-		if context.before and not context.blueprint then
-			for _, c in pairs(context.scoring_hand) do
-				if c.id ~= nil then
-					if global.flipped_cards[c.id] then
-						global.engineer_ret_mult = global.engineer_ret_mult * card.ability.extra.Xmult
-						global.flipped_cards[c.id] = nil
-					end
+		if context.individual and context.cardarea == G.play then
+			if context.other_card.id ~= nil then
+				if global.flipped_cards[context.other_card.id] then
+					return {
+						xmult = card.ability.extra.Xmult
+					}
 				end
 			end
 		end
+	end
+}
 
-		if context.joker_main then
+-- Stampbook
+SMODS.Joker{
+	key = 'stampbook',
+	loc_txt = {
+		name = 'Stampbook',
+		text = {
+			'If {C:attention}first hand{} of round',
+			'has only {C:attention}1{} card, add',
+			'a random {C:attention}seal{} to it'
+		}
+	},
+	atlas = 'GooberAtlas', -- Placeholder art
+	pos = {x = 1, y = 0},
+	rarity = 3,
+	cost = 7,
+	blueprint_compat = false,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {},
+	loc_vars = function (self, info_queue, center) return {vars = {}} end,
+	calculate = function(self, card, context)
+		if context.first_hand_drawn and not context.blueprint then
+			local eval = function() return G.GAME.current_round.hands_played == 0 and not G.RESET_JIGGLES end
+			juice_card_until(card, eval, true)
+		end
+
+		if context.before and not context.blueprint and G.GAME.current_round.hands_played == 0 and #context.full_hand == 1 then
+			local played_card = context.scoring_hand[1]
 			return {
-				xmult = global.engineer_ret_mult
+				message = 'Stamp!',
+				message_card = played_card,
+				colour = G.C.EDITION,
+				func = function()
+					G.E_MANAGER:add_event(Event({
+						func = function ()
+							play_sound('goob_stamp', 1, 1.5)
+							played_card:set_seal(SMODS.poll_seal({ guaranteed = true, type_key = 'gungaga' }))
+							played_card:juice_up(0.3, 0.4)
+							return true
+						end
+					}))
+				end
 			}
 		end
 	end
