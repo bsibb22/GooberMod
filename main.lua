@@ -712,6 +712,73 @@ SMODS.Joker{
 	end
 }
 
+-- Engineer
+SMODS.Joker{
+	key = 'engineer',
+	loc_txt = {
+		name = 'Engineer',
+		text = {
+			'{C:green} #1# in #2#{} cards are drawn',
+			'face down. Face down',
+			'cards give {X:mult,C:white} X 1 . 5 {} Mult when',
+			'scored'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 2,
+	cost = 6,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			odds = 5,
+			Xmult = 1.5
+		}
+	},
+	loc_vars = function(self, info_queue, center)
+		return {vars = {G.GAME.probabilities.normal or 1, center.ability.extra.odds, center.ability.extra.Xmult}}
+	end,
+	add_to_deck = function(self, card, from_debuff)
+		G.GAME.modifiers.flipped_cards = 5
+	end,
+	remove_from_deck = function (self, card, from_debuff)
+		G.GAME.modifiers.flipped_cards = nil
+	end,
+	calculate = function (self, card, context)
+		if (context.setting_blind or context.hand_drawn) and not context.blueprint then
+			global.flipped_cards = {}
+			global.engineer_ret_mult = 1
+			for _, c in pairs(G.hand.cards) do
+				if c.facing == 'back' then
+					global.flipped_cards[_] = true
+					c.id = _
+				end
+			end
+		end
+
+		if context.before and not context.blueprint then
+			for _, c in pairs(context.scoring_hand) do
+				if c.id ~= nil then
+					if global.flipped_cards[c.id] then
+						global.engineer_ret_mult = global.engineer_ret_mult * card.ability.extra.Xmult
+						global.flipped_cards[c.id] = nil
+					end
+				end
+			end
+		end
+
+		if context.joker_main then
+			return {
+				xmult = global.engineer_ret_mult
+			}
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
