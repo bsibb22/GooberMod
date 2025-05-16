@@ -10,10 +10,10 @@ return {
 			j_goob_joker_cursed_1 = {
 				name = "Cursed Joker (active)",
 				text = {
-					'This Joker gains {X:mult,C:white}x#2#{}',
+					'This Joker gains {X:mult,C:white}X#2#{}',
 					'Mult whenever a',
 					'Consumable is used',
-					'{C:inactive}(Currently {}{X:mult,C:white}x#3#{}{C:inactive} Mult)'
+					'{C:inactive}(Currently {}{X:mult,C:white}X#3#{}{C:inactive} Mult)'
 				}
 			}
 		}
