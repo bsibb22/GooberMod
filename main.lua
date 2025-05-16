@@ -825,6 +825,42 @@ SMODS.Joker{
 	end
 }
 
+-- Cowboy
+SMODS.Joker{
+	key = 'cowboy',
+	loc_txt = {
+		name = 'Cowboy',
+		text = {
+			'{X:mult,C:white} X #1# {} Mult on first',
+			'hand of round'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 2,
+	cost = 6,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			Xmult = 2
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = { center.ability.extra.Xmult }}
+	end,
+	calculate = function (self, card, context)
+		if context.joker_main and G.GAME.current_round.hands_played == 0 then
+			return {
+				xmult = card.ability.extra.Xmult
+			}
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
