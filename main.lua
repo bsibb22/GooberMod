@@ -944,8 +944,9 @@ SMODS.Joker{
 		name = '+4',
 		text = {
 			'{C:attention}+#1#{} hand size. All cards',
-			'except {V:1}#2#{} are debuffed,',
-			'suit changes every round'
+			'except {V:1}#2#{}',
+			'are {C:red,E:1}debuffed{}, suit',
+			'changes every round'
 		}
 	},
 	atlas = 'GooberAtlas',
