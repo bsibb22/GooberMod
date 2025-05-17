@@ -6,7 +6,9 @@ global = {
 	wordsearch_reset = false,
 	foods = {
 		"j_egg", "j_ice_cream", "j_gros_michel", "j_cavendish", "j_turtle_bean", "j_diet_cola", "j_popcorn", "j_ramen", "j_selzer"
-	}
+	},
+	uno_suit = 'Spades',
+	uno_color = G.C.SUITS.Spades
 }
 
 -- UTILITY FUNCTIONS --
@@ -23,6 +25,32 @@ function id_to_rank(base_id)
 		return 'Ace'
 	else
 		return 0
+	end
+end
+
+-- used for changing the suit for the uno wildcard
+local function change_suit()
+	local uno_card = pseudorandom_element(G.playing_cards, pseudoseed('uno'))
+	if uno_card then
+		global.uno_suit = uno_card.base.suit
+
+		if global.uno_suit == 'Spades' then
+			global.uno_color = G.C.SUITS.Spades
+		elseif global.uno_suit == 'Hearts' then
+			global.uno_color = G.C.SUITS.Hearts
+		elseif global.uno_suit == 'Clubs' then
+			global.uno_color = G.C.SUITS.Clubs
+		elseif global.uno_suit == 'Diamonds' then
+			global.uno_color = G.C.SUITS.Diamonds
+		end
+	end
+
+	for _, c in pairs(G.playing_cards) do
+		if c.base.suit ~= global.uno_suit then
+			SMODS.debuff_card(c, true, 'uno')
+		else
+			SMODS.debuff_card(c, 'reset', 'uno')
+		end
 	end
 end
 
@@ -908,6 +936,50 @@ SMODS.Joker{
 		end
 	end
 }
+
+-- +4/uno wildcard
+SMODS.Joker{
+	key = '+4',
+	loc_txt = {
+		name = '+4',
+		text = {
+			'{C:attention}+#1#{} hand size. All cards',
+			'except {V:1}#2#{} are debuffed,',
+			'suit changes every round'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 2,
+	cost = 6,
+	blueprint_compat = false,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			change_size = 4
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = { center.ability.extra.change_size, global.uno_suit, colours = { global.uno_color } }}
+	end,
+	add_to_deck = function (self, card, from_debuff)
+		change_suit();
+		G.hand:change_size(card.ability.extra.change_size)
+	end,
+	remove_from_deck = function (self, card, from_debuff)
+		G.hand:change_size(-card.ability.extra.change_size)
+	end,
+	calculate = function (self, card, context)
+		if context.end_of_round then
+			change_suit()
+		end
+	end
+}
+
+
 
 -- Example Joker
 SMODS.Joker{
