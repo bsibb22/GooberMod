@@ -7,6 +7,11 @@ global = {
 	foods = {
 		"j_egg", "j_ice_cream", "j_gros_michel", "j_cavendish", "j_turtle_bean", "j_diet_cola", "j_popcorn", "j_ramen", "j_selzer"
 	},
+	nim_tags = {
+		'uncommon', 'rare', 'negative', 'foil', 'holo', 'polychrome', 'investment', 'voucher', 'boss', 'standard',
+		'charm', 'meteor', 'buffoon', 'handy', 'garbage', 'ethereal', 'coupon', 'juggle', 'd_six', 'top_up', 'skip',
+		'orbital', 'economy'
+	},
 	uno_suit = 'Spades',
 	uno_color = G.C.SUITS.Spades
 }
@@ -639,7 +644,7 @@ SMODS.Joker{
 		return {vars = {center.ability.extra.h_increase}}
 	end,
 	calculate = function(self, card, context)
-		if context.first_hand_drawn and not context.blueprint then
+		if context.first_hand_drawn then
 			for i = 1, card.ability.extra.h_increase do
 				draw_card(G.deck, G.hand, 1, 'up', false, nil, nil, false)
 			end
@@ -900,7 +905,7 @@ SMODS.Joker{
 		}
 	},
 	atlas = 'GooberAtlas',
-	pos = {x = 1, y = 0}, -- Placeholder art
+	pos = {x = 3, y = 1},
 	rarity = 2,
 	cost = 6,
 	blueprint_compat = true,
@@ -949,7 +954,7 @@ SMODS.Joker{
 		}
 	},
 	atlas = 'GooberAtlas',
-	pos = {x = 1, y = 0}, -- Placeholder art
+	pos = {x = 4, y = 1},
 	rarity = 2,
 	cost = 6,
 	blueprint_compat = false,
@@ -979,6 +984,55 @@ SMODS.Joker{
 	end
 }
 
+SMODS.Joker{
+	key = "nimbo",
+	loc_txt = {
+		name = "Nimbo",
+		text = {
+			"If {C:attention}final hand{} of round",
+			"beats the {C:attention}Blind{}, generate",
+			"a random {C:attention}Tag{}"
+		}
+	},
+	atlas = "GooberAtlas",
+	pos = {x = 5, y = 1},
+	rarity = 1,
+	cost = 5,
+	blueprint_compat = false,
+	eternal_compat = true,
+	perishable_compat = true,
+	discovered = true,
+	config = {
+		extra = {
+			tag_generated = false
+		}
+	},
+	loc_vars = function(self, info_queue, center)
+		return {vars = {center.ability.extra.tag_generated}}
+	end,
+	calculate = function(self, card, context)
+		if context.setting_blind then
+			card.ability.extra.tag_generated = false
+		end
+		
+		if context.end_of_round and G.GAME.current_round.hands_left == 0 and not card.ability.extra.tag_generated then
+			local n_tag = "tag_"..(pseudorandom_element(global.nim_tags, pseudoseed("nimtag")))
+			G.E_MANAGER:add_event(Event({
+                func = (function()
+                    add_tag(Tag(n_tag))
+                    play_sound('generic1', 0.9 + math.random()*0.1, 0.8)
+                    play_sound('holo1', 1.2 + math.random()*0.1, 0.4)
+                    return true
+				end)
+            }))
+			card.ability.extra.tag_generated = true
+			return {
+				message = "Tagged!",
+				colour = G.C.BLUE
+			}
+		end
+	end
+}
 
 
 -- Example Joker
