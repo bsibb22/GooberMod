@@ -972,6 +972,9 @@ SMODS.Joker{
 	end,
 	remove_from_deck = function (self, card, from_debuff)
 		G.hand:change_size(-card.ability.extra.change_size)
+		for _, c in pairs(G.playing_cards) do
+			SMODS.debuff_card(c, 'reset', 'uno')
+		end
 	end,
 	calculate = function (self, card, context)
 		if context.end_of_round then
