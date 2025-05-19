@@ -1073,6 +1073,48 @@ SMODS.Joker{
 	end
 }
 
+SMODS.Joker{
+	key = 'the_daus',
+	loc_txt = {
+		name = 'The Daus',
+		text = {
+			'{C:attention}Retrigger{} the {C:attention}highest{}',
+			'ranked card(s) scored',
+			'in played hand'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 3,
+	cost = 7,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			repetitions = 1
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = { center.ability.extra.center }}
+	end,
+	calculate = function (self, card, context)
+		if context.repetition and context.cardarea == G.play then
+			local highest_rank = 2
+			for _, c in pairs(context.scoring_hand) do
+				if highest_rank <= c.base.id and not SMODS.has_no_rank(c) then highest_rank = c.base.id end
+			end
+			if context.other_card.base.id == highest_rank and not SMODS.has_no_rank(context.other_card) then
+				return {
+					repetitions = card.ability.extra.repetitions
+				}
+			end
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
