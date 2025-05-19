@@ -949,8 +949,9 @@ SMODS.Joker{
 		name = '+4',
 		text = {
 			'{C:attention}+#1#{} hand size. All cards',
-			'except {V:1}#2#{} are debuffed,',
-			'suit changes every round'
+			'except {V:1}#2#{}',
+			'are {C:red,E:1}debuffed{}, suit',
+			'changes every round'
 		}
 	},
 	atlas = 'GooberAtlas',
@@ -976,6 +977,9 @@ SMODS.Joker{
 	end,
 	remove_from_deck = function (self, card, from_debuff)
 		G.hand:change_size(-card.ability.extra.change_size)
+		for _, c in pairs(G.playing_cards) do
+			SMODS.debuff_card(c, 'reset', 'uno')
+		end
 	end,
 	calculate = function (self, card, context)
 		if context.end_of_round then
