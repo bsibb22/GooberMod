@@ -1168,6 +1168,48 @@ SMODS.Joker{
 	end
 }
 
+SMODS.Joker{
+	key = 'peasant_slapping_the_pond',
+	loc_txt = {
+		name = 'Peasant Slapping the Pond',
+		text = {
+			'Each {C:attention}Jack{} held in',
+			'hand gives {C:chips}+#1#{} Chips'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0},
+	rarity = 1,
+	cost = 4,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			chips = 50
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = { center.ability.extra.chips }}
+	end,
+	calculate = function (self, card, context)
+		if context.individual and context.cardarea == G.hand and not context.end_of_round and context.other_card:get_id() == 11 then
+			if context.other_card.debuff then
+				return {
+					message = 'Debuffed!',
+					colour = G.C.RED
+				}
+			else
+				return {
+					chips = card.ability.extra.chips
+				}
+			end
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
