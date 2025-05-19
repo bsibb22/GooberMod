@@ -1115,6 +1115,59 @@ SMODS.Joker{
 	end
 }
 
+SMODS.Joker{
+	key = 'rolling_stone',
+	loc_txt = {
+		name = 'Rolling Stone',
+		text = {
+			'This Joker gains {X:mult,C:white}X #1#{}',
+			'Mult per {C:attention}reroll{} in the shop,',
+			'resets at the {C:attention}end of round{}',
+			'{C:inactive} (Currently{} {X:mult,C:white}X #2#{} {C:inactive}Mult){}'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 2,
+	cost = 7,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			Xmult_mod = 0.25,
+			Xmult_bonus = 1
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = {center.ability.extra.Xmult_mod, center.ability.extra.Xmult_bonus}}
+	end,
+	calculate = function (self, card, context)
+		if context.reroll_shop and not context.blueprint then
+			card.ability.extra.Xmult_bonus = card.ability.extra.Xmult_bonus + card.ability.extra.Xmult_mod
+			return {
+				message = 'Upgrade!'
+			}
+		end
+
+		if context.joker_main then
+			return {
+				xmult = card.ability.extra.Xmult_bonus
+			}
+		end
+
+		if context.end_of_round and context.cardarea == G.jokers and not context.blueprint then
+			card.ability.extra.Xmult_bonus = 1
+			return {
+				message = 'Reset!',
+				colour = G.C.RED
+			}
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
