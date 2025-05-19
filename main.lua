@@ -1038,6 +1038,40 @@ SMODS.Joker{
 	end
 }
 
+SMODS.Joker{
+	key = 'gambler',
+	loc_txt = {
+		name = 'Gambler',
+		text = {
+			'{C:attention}Lucky{} card triggers give',
+			'{X:mult,C:white}X #1#{} Mult in addition'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0},
+	rarity = 3,
+	cost = 8,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			Xmult = 2
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = { center.ability.extra.Xmult }}
+	end,
+	calculate = function (self, card, context)
+		if context.individual and context.cardarea == G.play and context.other_card.lucky_trigger then
+			return {
+				xmult = card.ability.extra.Xmult
+			}
+		end
+	end
+}
 
 -- Example Joker
 SMODS.Joker{
