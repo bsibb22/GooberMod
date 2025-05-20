@@ -119,6 +119,11 @@ SMODS.Sound{
 	path = 'trad_stamp.ogg'
 }
 
+SMODS.Sound{
+	key = 'thunder',
+	path = 'thunder.ogg'
+}
+
 -- JOKER TEMPLATE --
 --[[
 
@@ -1206,6 +1211,95 @@ SMODS.Joker{
 					chips = card.ability.extra.chips
 				}
 			end
+		end
+	end
+}
+
+SMODS.Joker{
+	key = 'conduit',
+	loc_txt = {
+		name = 'The Conduit',
+		text = {
+			'At end of round, Joker to the',
+			'{C:attention}right{} copies the {C:enhanced}Edition{} of', 
+			'this Joker, then this Joker',
+			'copies the {C:enhanced}Edition{} to the {C:attention}left{}',
+			'{C:inactive}(Excludes{} {C:dark_edition}Negative{} {C:inactive}Jokers){}'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0},
+	rarity = 3,
+	cost = 8,
+	blueprint_compat = false,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	calculate = function (self, card, context)
+		if context.end_of_round and not context.blueprint and context.cardarea == G.jokers then
+			-- Determine which Jokers are to the left and right of the Conduit
+			local left_joker, right_joker
+			local num_jokers = #G.jokers.cards
+			local ret_bool = false
+
+			for i = 1, num_jokers do
+				if G.jokers.cards[i] == card then
+					if i ~= 1 then
+						left_joker = G.jokers.cards[i - 1]
+					end
+
+					if i ~= num_jokers then
+						right_joker = G.jokers.cards[i + 1]
+					end
+				end
+			end
+
+			-- Copy edition from this joker to the joker right of it
+			if right_joker then
+				if card.edition then
+					if not card.edition.negative then
+						right_joker:set_edition(card.edition, true, true)
+						card:juice_up(0.3, 0.4)
+						right_joker:juice_up(0.3, 0.4)
+						ret_bool = true
+					end
+				else
+					right_joker:set_edition(card.edition, true, true)
+					card:juice_up(0.3, 0.4)
+					right_joker:juice_up(0.3, 0.4)
+					ret_bool = true
+				end
+			end
+
+			-- Copy the edition from the joker left of the conduit to the conduit
+			if left_joker then
+				if left_joker.edition then
+					if not left_joker.edition.negative then
+						card:set_edition(left_joker.edition, true, true)
+						left_joker:juice_up(0.3, 0.4)
+						card:juice_up(0.3, 0.4)
+						ret_bool = true
+					end
+				else
+					card:set_edition(left_joker.edition, true, true)
+					left_joker:juice_up(0.3, 0.4)
+					card:juice_up(0.3, 0.4)
+					ret_bool = true
+				end
+				
+			end
+
+			-- If editions changed, give a little message
+			if ret_bool then
+				return {
+					message = 'Bazinga!',
+					colour = G.C.SECONDARY_SET.Enhanced,
+					sound = 'goob_thunder',
+					volume = 1.5
+				}
+			end
+			
 		end
 	end
 }
