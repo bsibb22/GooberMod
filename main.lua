@@ -1304,6 +1304,39 @@ SMODS.Joker{
 	end
 }
 
+SMODS.Joker{
+	key = 'professor',
+	loc_txt = {
+		name = 'The Professor',
+		text = {
+			'If {C:attention}discard{} has only {C:attention}1{}',
+			'card, draw up to {C:attention}2{} cards',
+			'of the same rank from',
+			'your deck'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 3,
+	cost = 7,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	calculate = function (self, card, context)
+		if context.discard and #context.full_hand == 1 then
+			local num_draws = 2
+			for _, c in pairs(G.deck.cards) do
+				if c:get_id() == context.other_card:get_id() and num_draws > 0 then
+					draw_card(G.deck, G.hand, 50, 'up', true, c)
+					num_draws = num_draws - 1
+				end
+			end
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
