@@ -1378,6 +1378,79 @@ SMODS.Joker{
 	end
 }
 
+SMODS.Joker{
+	key = 'harlequin',
+	loc_txt = {
+		name = 'Harlequin',
+		text = {
+			'Converts all scored cards',
+			'to {C:diamonds}Diamonds{}, gains {X:mult,C:white}X #1#{} Mult',
+			'for each card {C:attention}converted{}',
+			'{C:inactive}(Currently{} {X:mult,C:white}X #2#{} {C:inactive}Mult){}'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 3,
+	cost = 8,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			Xmult_mod = 0.2,
+			Xmult_bonus = 1
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = { center.ability.extra.Xmult_mod, center.ability.extra.Xmult_bonus }}
+	end,
+	calculate = function (self, card, context)
+		if context.before and context.main_eval and not context.blueprint then
+			local display_message = false
+			for _, c in pairs(context.scoring_hand) do
+				if not c:is_suit('Diamonds') then
+					card.ability.extra.Xmult_bonus = card.ability.extra.Xmult_bonus + card.ability.extra.Xmult_mod
+					display_message = true
+					G.E_MANAGER:add_event(Event({
+						func = function ()
+							SMODS.change_base(c, 'Diamonds')
+							c:juice_up(0.3, 0.4)
+							return true
+						end
+					}))
+				end
+			end
+			if display_message then
+				return {
+					message = 'X'..tostring(card.ability.extra.Xmult_bonus)..' Mult',
+					colour = G.C.RED
+				}
+			end
+		end
+
+		if context.using_consumeable and not context.blueprint then
+			if context.consumeable.label == 'The Star' then
+				for i = 1, #G.hand.highlighted do
+					card.ability.extra.Xmult_bonus = card.ability.extra.Xmult_bonus + card.ability.extra.Xmult_mod
+				end
+				return {
+					message = 'X'..tostring(card.ability.extra.Xmult_bonus)..' Mult',
+					colour = G.C.RED
+				}
+			end
+		end
+
+		if context.joker_main then
+			return {
+				xmult = card.ability.extra.Xmult_bonus
+			}
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
