@@ -1451,6 +1451,74 @@ SMODS.Joker{
 	end
 }
 
+SMODS.Joker{
+	key = 'ransom',
+	loc_txt = {
+		name = 'Ransom Note',
+		text = {
+			'Forces 1 card to {C:attention}always be{}',
+			'{C:attention}selected{}, card is retriggered',
+			'{C:attention}#1#{} times when scored',
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 1,
+	cost = 3,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			retriggers = 4,
+			forced_card = nil
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = {center.ability.extra.retriggers, center.ability.extra.forced_card}}
+	end,
+	calculate = function (self, card, context)
+		if context.hand_drawn and not context.blueprint then
+			card.ability.extra.forced_card = pseudorandom_element(G.hand.cards, pseudoseed('ransom'))
+			card.ability.extra.forced_card.ability.forced_selection = true
+            G.hand:add_to_highlighted(card.ability.extra.forced_card)
+		end
+
+		if context.repetition and context.cardarea == G.play and context.other_card == card.ability.extra.forced_card then
+			return {
+				repetitions = card.ability.extra.retriggers
+			}
+		end
+
+		if context.end_of_round and not context.blueprint then
+			card.ability.extra.forced_card = nil
+		end
+	end,
+	remove_from_deck = function (self, card, from_debuff)
+		if G.GAME.blind.name ~= 'Cerulean Bell' and card.ability.extra.forced_card then
+			card.ability.extra.forced_card.ability.forced_selection = nil
+			card.ability.extra.forced_card = nil
+		end
+	end,
+	add_to_deck = function (self, card, from_debuff)
+		if G.GAME.blind.name ~= 'Cerulean Bell' then
+			card.ability.extra.forced_card = pseudorandom_element(G.hand.cards, pseudoseed('ransom'))
+			if card.ability.extra.forced_card then
+				card.ability.extra.forced_card.ability.forced_selection = true
+				G.hand:add_to_highlighted(card.ability.extra.forced_card)
+			end
+		else 
+			for k, v in ipairs(G.hand.cards) do
+				if v.ability.forced_selection then
+					card.ability.extra.forced_card = v
+				end
+			end
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
