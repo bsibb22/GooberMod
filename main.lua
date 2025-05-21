@@ -1337,6 +1337,47 @@ SMODS.Joker{
 	end
 }
 
+SMODS.Joker{
+	key = 'virus',
+	loc_txt = {
+		name = 'Virus',
+		text = {
+			'On {C:attention}first hand{} played, copy',
+			'{C:enhanced}enhancement{} from leftmost',
+			'scored card to scored card',
+			'directly right of it'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 3,
+	cost = 8,
+	blueprint_compat = false,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	calculate = function (self, card, context)
+		if context.before and not context.blueprint and G.GAME.current_round.hands_played == 0 and #context.scoring_hand > 1 and context.main_eval then
+			local enhancement = SMODS.get_enhancements(context.scoring_hand[1], false)
+			local infected_card = context.scoring_hand[2]
+
+			for k, p in pairs(enhancement) do			
+				if p then
+					infected_card:set_ability(k, nil, true)
+					
+					G.E_MANAGER:add_event(Event({
+						func = function ()
+							infected_card:juice_up(0.3, 0.4)
+							return true
+						end
+					}))
+				end
+			end
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
