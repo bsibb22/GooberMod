@@ -1519,6 +1519,71 @@ SMODS.Joker{
 	end
 }
 
+SMODS.Joker{
+	key = 'of_all_trades',
+	loc_txt = {
+		name = 'Of All Trades',
+		text = {
+			'This Joker gains {X:mult,C:white}X #1#{} Mult',
+			'for each unique {C:attention}poker hand{}',
+			'played this round',
+			'{C:inactive}(Currently{} {X:mult,C:white}X #2#{} {C:inactive}Mult){}'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 2,
+	cost = 6,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			Xmult_mod = 1,
+			Xmult_bonus = 1,
+			played_hands = {}
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = { center.ability.extra.Xmult_mod, center.ability.extra.Xmult_bonus, center.ability.extra.played_hands }}
+	end,
+	calculate = function (self, card, context)
+		if context.before and context.main_eval and not context.blueprint then
+			local unique_hand = true
+			for k, v in pairs(card.ability.extra.played_hands) do
+				if k == context.scoring_name then
+					unique_hand = false
+				end
+			end
+
+			if unique_hand then
+				card.ability.extra.played_hands[context.scoring_name] = true
+				card.ability.extra.Xmult_bonus = card.ability.extra.Xmult_bonus + card.ability.extra.Xmult_mod
+				return {
+					message = 'X'..tostring(card.ability.extra.Xmult_bonus)..' Mult',
+					colour = G.C.RED
+				}
+			end
+		end
+
+		if context.joker_main then
+			return {
+				xmult = card.ability.extra.Xmult_bonus
+			}
+		end
+
+		if context.end_of_round and not context.blueprint then
+			card.ability.extra.played_hands = {}
+			card.ability.extra.Xmult_bonus = 1
+			return {
+				message = 'Reset!'
+			}
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
