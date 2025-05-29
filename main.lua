@@ -1584,6 +1584,59 @@ SMODS.Joker{
 	end
 }
 
+--Broker
+SMODS.Joker{
+	key = 'broker',
+	loc_txt = {
+		name = 'Broker',
+		text = {
+			'At the start of every round',
+			'you lose {C:attention}$3{} and this Joker',
+			'gains {C:chips}+#2#{} Chips',
+			'{C:inactive}(Currently{} {C:chips}+#1#{} {C:inactive}Chips){}'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, --placeholder
+	rarity = 3,
+	cost = 7,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			bonus_chips = 10,
+			added_chips = 20,
+			payout = -3
+		}
+	},
+	loc_vars = function(self, info_queue, center)
+		return {vars = {center.ability.extra.bonus_chips, center.ability.extra.added_chips, center.ability.extra.payout}}
+	end,
+	calculate = function(self, card, context)
+		if context.setting_blind then
+			card.ability.extra.bonus_chips = card.ability.extra.bonus_chips + card.ability.extra.added_chips
+			card.ability.extra.payout = card.ability.extra.payout
+
+			return {
+				card = card,
+				message = 'Upgrade!',
+				colour = G.C.BLUE,
+				dollars = card.ability.extra.payout
+			}
+		end
+
+		if context.joker_main then
+			return {
+				card = card,
+				chips = card.ability.extra.bonus_chips,
+			}
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
