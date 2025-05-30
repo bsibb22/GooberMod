@@ -1411,7 +1411,7 @@ SMODS.Joker{
 		if context.before and context.main_eval and not context.blueprint then
 			local display_message = false
 			for _, c in pairs(context.scoring_hand) do
-				if not c:is_suit('Diamonds') then
+				if not c:is_suit('Diamonds') and not c.debuff then
 					card.ability.extra.Xmult_bonus = card.ability.extra.Xmult_bonus + card.ability.extra.Xmult_mod
 					display_message = true
 					G.E_MANAGER:add_event(Event({
