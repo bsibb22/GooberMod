@@ -1637,6 +1637,54 @@ SMODS.Joker{
 	end
 }
 
+SMODS.Joker{
+	key = 'collector',
+	loc_txt = {
+		name = 'The Collector',
+		text = {
+			'{C:blue}+#1#{} Joker slots,',
+			'{C:blue}-#2#{} hand, {C:red}-#3#{} discard'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 3,
+	cost = 9,
+	blueprint_compat = false,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			bonus_joker_slots = 2,
+			diff_hands = 1,
+			diff_discards = 1
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = {center.ability.extra.bonus_joker_slots, center.ability.extra.diff_hands, center.ability.extra.diff_discards}}
+	end,
+	add_to_deck = function (self, card, from_debuff)
+		if not from_debuff then
+			G.jokers.config.card_limit = G.jokers.config.card_limit + card.ability.extra.bonus_joker_slots
+			G.GAME.round_resets.hands = G.GAME.round_resets.hands - card.ability.extra.diff_hands
+			ease_hands_played(-card.ability.extra.diff_hands)
+			G.GAME.round_resets.discards = G.GAME.round_resets.discards - card.ability.extra.diff_discards
+			ease_discard(-card.ability.extra.diff_discards)
+		end
+	end,
+	remove_from_deck = function (self, card, from_debuff)
+		if not from_debuff then
+			G.jokers.config.card_limit = G.jokers.config.card_limit - card.ability.extra.bonus_joker_slots
+			G.GAME.round_resets.hands = G.GAME.round_resets.hands + card.ability.extra.diff_hands
+			ease_hands_played(card.ability.extra.diff_hands)
+			G.GAME.round_resets.discards = G.GAME.round_resets.discards + card.ability.extra.diff_discards
+			ease_discard(card.ability.extra.diff_discards)
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
