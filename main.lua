@@ -1685,6 +1685,101 @@ SMODS.Joker{
 	end
 }
 
+SMODS.Joker{
+	key = 'cosmologist',
+	loc_txt = {
+		name = 'Cosmologist',
+		text = {
+			'While Joker is held',
+			'{C:planet}Planet{} cards level up',
+			'their respective {C:attention}poker{}',
+			'{C:attention}hands{} by {C:attention}#1#{} levels'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 2,
+	cost = 6,
+	blueprint_compat = true,
+	eternal_compat = true,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			bonus_levels = 1
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = { center.ability.extra.bonus_levels + 1 }}
+	end,
+	calculate = function (self, card, context)
+		if context.using_consumeable and context.consumeable.ability.set == 'Planet' then
+			local text = context.consumeable.ability.consumeable.hand_type
+			return {
+				level_up = card.ability.extra.bonus_levels,
+				level_up_hand = text
+			}
+		end
+
+		if context.using_consumeable and context.consumeable.ability.name == 'Black Hole' and not context.blueprint then
+			-- This is just straight up yoinked from the Black Hole section of Card:use_consumeable()
+			update_hand_text({sound = 'button', volume = 0.7, pitch = 0.8, delay = 0.3}, {handname=localize('k_all_hands'),chips = '...', mult = '...', level=''})
+			G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.2, func = function()
+				play_sound('tarot1')
+				card:juice_up(0.8, 0.5)
+				G.TAROT_INTERRUPT_PULSE = true
+				return true end }))
+			update_hand_text({delay = 0}, {mult = '+', StatusText = true})
+			G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.9, func = function()
+				play_sound('tarot1')
+				card:juice_up(0.8, 0.5)
+				return true end }))
+			update_hand_text({delay = 0}, {chips = '+', StatusText = true})
+			G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.9, func = function()
+				play_sound('tarot1')
+				card:juice_up(0.8, 0.5)
+				G.TAROT_INTERRUPT_PULSE = nil
+				return true end }))
+			update_hand_text({sound = 'button', volume = 0.7, pitch = 0.9, delay = 0}, {level='+1'})
+			delay(1.3)
+			for k, v in pairs(G.GAME.hands) do
+				level_up_hand(self, k, true)
+			end
+			update_hand_text({sound = 'button', volume = 0.7, pitch = 1.1, delay = 0}, {mult = 0, chips = 0, handname = '', level = ''})
+		end
+
+		if context.using_consumeable and context.consumeable.ability.name == 'Black Hole' and context.blueprint then
+			-- Need to do this to pass the blueprint card to the event manager; it can't read context
+			local bp = context.blueprint_card
+			-- This is just straight up yoinked from the Black Hole section of Card:use_consumeable()
+			update_hand_text({sound = 'button', volume = 0.7, pitch = 0.8, delay = 0.3}, {handname=localize('k_all_hands'),chips = '...', mult = '...', level=''})
+			G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.2, func = function()
+				play_sound('tarot1')
+				bp:juice_up(0.8, 0.5)
+				G.TAROT_INTERRUPT_PULSE = true
+				return true end }))
+			update_hand_text({delay = 0}, {mult = '+', StatusText = true})
+			G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.9, func = function()
+				play_sound('tarot1')
+				bp:juice_up(0.8, 0.5)
+				return true end }))
+			update_hand_text({delay = 0}, {chips = '+', StatusText = true})
+			G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.9, func = function()
+				play_sound('tarot1')
+				bp:juice_up(0.8, 0.5)
+				G.TAROT_INTERRUPT_PULSE = nil
+				return true end }))
+			update_hand_text({sound = 'button', volume = 0.7, pitch = 0.9, delay = 0}, {level='+1'})
+			delay(1.3)
+			for k, v in pairs(G.GAME.hands) do
+				level_up_hand(self, k, true)
+			end
+			update_hand_text({sound = 'button', volume = 0.7, pitch = 1.1, delay = 0}, {mult = 0, chips = 0, handname = '', level = ''})
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
