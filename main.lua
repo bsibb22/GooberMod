@@ -1780,6 +1780,97 @@ SMODS.Joker{
 	end
 }
 
+SMODS.Joker{
+	key = 'xxx',
+	loc_txt = {
+		name = 'XXX',
+		text = {
+			'Level up all {C:attention}poker hands{}',
+			'by {C:attention}#1#{} levels on purchase',
+			'reduce level of played {C:attention}poker{}',
+			'hand by {C:red}#2#{} level, resets on',
+			'sell or destroy'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 1,
+	cost = 5,
+	blueprint_compat = false,
+	eternal_compat = false,
+	perishable_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			bonus_levels = 3,
+			diff_levels = 1,
+			initial_levels = {}
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = { center.ability.extra.bonus_levels, center.ability.extra.diff_levels, center.ability.extra.initial_levels }}
+	end,
+	add_to_deck = function (self, card, from_debuff)
+		if not from_debuff then
+			G.E_MANAGER:add_event(Event({
+				trigger = 'after',
+				delay = .1,
+				func = function ()
+					-- Level up every hand thrice
+					SMODS.calculate_effect({
+						message = 'Bottoms up!',
+						message_card = card
+					})
+					update_hand_text({sound = 'button', volume = 0.7, pitch = 0.8, delay = 0.3}, {handname=localize('k_all_hands'),chips = '...', mult = '...', level=''})
+					G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.2, func = function()
+						play_sound('tarot1')
+						card:juice_up(0.8, 0.5)
+						G.TAROT_INTERRUPT_PULSE = true
+						return true end }))
+					update_hand_text({delay = 0}, {mult = '+', StatusText = true})
+					G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.9, func = function()
+						play_sound('tarot1')
+						card:juice_up(0.8, 0.5)
+						return true end }))
+					update_hand_text({delay = 0}, {chips = '+', StatusText = true})
+					G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.9, func = function()
+						play_sound('tarot1')
+						card:juice_up(0.8, 0.5)
+						G.TAROT_INTERRUPT_PULSE = nil
+						return true end }))
+					update_hand_text({sound = 'button', volume = 0.7, pitch = 0.9, delay = 0}, {level='+3'})
+					delay(1.3)
+					for k, v in pairs(G.GAME.hands) do
+						-- Store initial levels
+						card.ability.extra.initial_levels[k] = G.GAME.hands[k].level
+						level_up_hand(self, k, true, card.ability.extra.bonus_levels)
+					end
+					update_hand_text({sound = 'button', volume = 0.7, pitch = 1.1, delay = 0}, {mult = 0, chips = 0, handname = '', level = ''})
+					return true
+				end
+			}))
+		end
+	end,
+	remove_from_deck = function (self, card, from_debuff)
+		if not from_debuff then
+			for k, v in pairs(G.GAME.hands) do
+				G.GAME.hands[k].level = card.ability.extra.initial_levels[k]
+			end
+		end
+	end,
+	calculate = function (self, card, context)
+		if context.before and context.main_eval and not context.blueprint then
+			if G.GAME.hands[context.scoring_name].level > 1 then
+				return {
+					message = 'Beer!',
+					level_up = -card.ability.extra.diff_levels
+				}
+			end
+		end
+	end
+}
+
 -- Example Joker
 SMODS.Joker{
 	key = 'ex_joker',                        -- key for the Joker used in the game; not super relevant
