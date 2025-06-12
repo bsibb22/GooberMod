@@ -100,6 +100,27 @@ function get_rank(rank_pool, _n)
 	return resulting_ranks
 end
 
+-- Determines how the amount of chips a scored card nets when scored in the main scoring loop
+function calculate_card_chips(card)
+	local x_chip = card.ability.perma_x_chips > 0 and card.ability.perma_x_chips or 1
+	if card.debuff then
+		return 0
+	else
+		if card.ability.name == 'Stone Card' then
+			return (card.ability.bonus + card.ability.perma_bonus) * x_chip
+		else
+			local id = card:get_id()
+			if id == 11 or id == 12 or id == 13 then
+				return (card.ability.bonus + card.ability.perma_bonus + 10) * x_chip
+			elseif id == 14 then
+				return (card.ability.bonus + card.ability.perma_bonus + 11) * x_chip
+			else
+				return (card.ability.bonus + card.ability.perma_bonus + id) * x_chip
+			end
+		end
+	end
+end
+
 -- sprite stuff
 SMODS.Atlas{
 	key = 'GooberAtlas',
@@ -1865,6 +1886,49 @@ SMODS.Joker{
 				return {
 					message = 'Beer!',
 					level_up = -card.ability.extra.diff_levels
+				}
+			end
+		end
+	end
+}
+
+SMODS.Joker{
+	key = 'high_noon',
+	loc_txt = {
+		name = 'High Noon',
+		text = {
+			'{X:mult,C:white}X #1#{} Mult if the sum',
+			'of {C:attention}scored card chip values{}',
+			'is divisble by {C:attention}12{}'
+		}
+	},
+	atlas = 'GooberAtlas',
+	pos = {x = 1, y = 0}, -- Placeholder art
+	rarity = 2,
+	cost = 6,
+	blueprint_compat = true,
+	perishable_compat = true,
+	eternal_compat = true,
+	unlocked = true,
+	discovered = true,
+	config = {
+		extra = {
+			bonus_Xmult = 3
+		}
+	},
+	loc_vars = function (self, info_queue, center)
+		return {vars = { center.ability.extra.bonus_Xmult }}
+	end,
+	calculate = function (self, card, context)
+		if context.joker_main then
+			local sum = 0
+			for i = 1, #context.scoring_hand do
+				sum = sum + calculate_card_chips(context.scoring_hand[i])
+			end
+
+			if sum % 12 == 0 then
+				return {
+					xmult = card.ability.extra.bonus_Xmult
 				}
 			end
 		end
